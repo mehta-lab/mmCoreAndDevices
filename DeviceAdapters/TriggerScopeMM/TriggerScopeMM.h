@@ -101,6 +101,7 @@ public:
    // ----------------
    int OnCOMPort(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnUseActionLEDs(MM::PropertyBase* pProp, MM::ActionType eAct);
+   int OnTriggerInput(MM::PropertyBase* pProp, MM::ActionType eAct);
    
    int OnSendSerialCmd(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnRecvSerialCmd(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -134,6 +135,7 @@ private:
    FILE* fidSerialLog_;
    double firmwareVer_;
    bool useActionLEDs_;
+   long triggerInput_;
    bool initialized_;
 
    long stepMode_ ;

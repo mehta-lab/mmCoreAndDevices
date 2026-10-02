@@ -159,6 +159,7 @@ CTriggerScopeMMHub::CTriggerScopeMMHub(void)  :
    fidSerialLog_(NULL),
    firmwareVer_(0.0),
    useActionLEDs_(true),
+   triggerInput_(1),
    initialized_(false)
 {
    // call the base class method to set-up default error codes/messages
@@ -415,6 +416,18 @@ int CTriggerScopeMMHub::Initialize()
       AddAllowedValue("UseActionLEDs", "Off");
    }
 
+   // Trigger input selection is only available in newer firmware
+   if (SendAndReceive("STI1", answer) == DEVICE_OK)
+   {
+      triggerInput_ = 1;
+      pAct = new CPropertyAction(this, &CTriggerScopeMMHub::OnTriggerInput);
+      ret = CreateProperty("TriggerInput", "1", MM::Integer, false, pAct);
+      for (int i = 1; i <= 4; i++)
+      {
+         AddAllowedValue("TriggerInput", std::to_string(i).c_str());
+      }
+   }
+
    pAct = new CPropertyAction (this, &CTriggerScopeMMHub::OnRecvSerialCmd);
 	ret = CreateProperty("Serial Receive", "", MM::String, true, pAct);
 	assert(ret == DEVICE_OK);
@@ -564,6 +577,30 @@ int CTriggerScopeMMHub::OnUseActionLEDs(MM::PropertyBase* pProp, MM::ActionType 
          }
       }
       return ret;
+   }
+   return DEVICE_OK;
+}
+
+
+int CTriggerScopeMMHub::OnTriggerInput(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      pProp->Set(triggerInput_);
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      long input;
+      pProp->Get(input);
+      if (input < 1 || input > 4)
+         return ERR_INVALID_VALUE;
+      std::ostringstream os;
+      os << "STI" << input;
+      std::string answer;
+      int ret = SendAndReceive(os.str(), answer);
+      if (ret != DEVICE_OK)
+         return ret;
+      triggerInput_ = input;
    }
    return DEVICE_OK;
 }
